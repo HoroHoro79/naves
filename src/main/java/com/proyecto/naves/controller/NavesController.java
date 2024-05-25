@@ -7,10 +7,10 @@ import java.util.Optional;
 import javax.validation.Valid;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -26,96 +26,88 @@ import com.proyecto.naves.dto.NavesPostRequest;
 import com.proyecto.naves.dto.NavesPutRequest;
 import com.proyecto.naves.model.Naves;
 import com.proyecto.naves.service.NavesService;
+import com.proyecto.naves.utils.Constantes;
+
+import lombok.extern.log4j.Log4j2;
+
+
 
 @RestController
-@RequestMapping("/api/naves")
+@RequestMapping(Constantes.REQUEST_MAPPING)
+@Log4j2
 public class NavesController {
 
-    @Autowired
+	@Autowired
     private NavesService navesService;
-
-    @GetMapping("/status")
+    
+    private static final String version = "/v1";
+    
+    @GetMapping(version+Constantes.STATUS_ENDPOINT)
     public ResponseEntity<Map<String, String>> getStatus() {
+        log.info("Entrando en getStatus()");
         Map<String, String> response = new HashMap<>();
         response.put("status", "OK");
         response.put("timestamp", String.valueOf(System.currentTimeMillis()));
+        log.info("Saliendo de getStatus()");
         return ResponseEntity.ok(response);
     }
-
-    @GetMapping("/{id}")
+    
+    @GetMapping(version+Constantes.NAVE_BY_ID_ENDPOINT)
+    @Cacheable(value = "naveCache", key = "#id")
     public ResponseEntity<Naves> getNaveById(@PathVariable Integer id) {
-        try {
+        log.info("Entrando en getNaveById() con id: {}", id);
         Optional<Naves> nave = navesService.getNaveById(id);
-        return nave != null ?
-                ResponseEntity.status(HttpStatus.OK).body(nave.get()) :
-             	   ResponseEntity.status(HttpStatus.NO_CONTENT).build();
-        }
-        catch (Exception e) {
-        	 return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
-		}
+        log.info("Saliendo de getNaveById()");
+        return ResponseEntity.ok().body(nave.get());
     }
 
-    @GetMapping("/")
+    @GetMapping(version+Constantes.ALL_NAVES_ENDPOINT)
+    @Cacheable(value = "allNavesCache")
     public ResponseEntity<List<Naves>> getNaves() {
-        List<Naves> salida = navesService.getNaves();
-        return !salida.isEmpty() ?
-               ResponseEntity.ok(salida) :
-               ResponseEntity.notFound().build();
+        log.info("Entrando en getNaves()");
+        List<Naves> naves = navesService.getNaves();
+        log.info("Saliendo de getNaves()");
+        return ResponseEntity.ok().body(naves); 
     }
     
-    
-    @GetMapping("/paginacion")
-    public ResponseEntity<Page<Naves>> getNavesPage(@PageableDefault(size = 10) Pageable pageable) {
+    @GetMapping(version+Constantes.PAGINACION_ENDPOINT)
+    public ResponseEntity<List<Naves>> getNavesPage(@PageableDefault(size = 10) Pageable pageable) {
+        log.info("Entrando en getNavesPage() con pageable: {}", pageable);
         Page<Naves> salida = navesService.getNaves(pageable);
-        return !salida.isEmpty() ?
-               ResponseEntity.ok(salida) :
-               ResponseEntity.notFound().build();
+        log.info("Saliendo de getNavesPage()");
+        return ResponseEntity.ok(salida.get().toList()); 
     }
     
-    @GetMapping("/filtros")
+    @GetMapping(version+Constantes.FILTROS_ENDPOINT)
+    @Cacheable(value = "navesaByFiltrosCache", key = "#nombre")
     public ResponseEntity<List<Naves>> getByFiltros(@RequestParam String nombre) {
+        log.info("Entrando en getByFiltros() con nombre: {}", nombre);
         List<Naves> naves = navesService.getByFiltros(nombre);
-        if (naves.isEmpty()) {
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-        }
-        return new ResponseEntity<>(naves, HttpStatus.OK);
+        log.info("Saliendo de getByFiltros()");
+        return ResponseEntity.ok().body(naves); 
     }
     
-    
-    @PutMapping("/")
+    @PutMapping(version+Constantes.PUT_NAVE_ENDPOINT)
     public ResponseEntity<Naves> putNave(@Valid @RequestBody NavesPutRequest naveRequest) {
-        try {
-            Naves naveUpdated = navesService.putNave(naveRequest);
-            return naveUpdated != null ?
-                   ResponseEntity.status(HttpStatus.ACCEPTED).body(naveUpdated) :
-                	   ResponseEntity.status(HttpStatus.NOT_MODIFIED).build();
-        } catch (Exception ex) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
-        }
-    }
+        log.info("Entrando en putNave() con naveRequest: {}", naveRequest);
+        Naves naveUpdated = navesService.putNave(naveRequest);
+        log.info("Saliendo de putNave()");
+        return ResponseEntity.ok().body(naveUpdated);
+    } 
     
-    @PostMapping("/")
+    @PostMapping(version+Constantes.POST_NAVE_ENDPOINT)
     public ResponseEntity<Naves> postNave(@Valid @RequestBody NavesPostRequest naveRequest) {
-    	   try {
-    	Naves navePosted = navesService.postNave(naveRequest);
-    	  return navePosted != null ?
-                  ResponseEntity.status(HttpStatus.CREATED).body(navePosted) :
-                  ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
-       } catch (Exception ex) {
-           return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
-       }
+        log.info("Entrando en postNave() con naveRequest: {}", naveRequest);
+        Naves navePosted = navesService.postNave(naveRequest);
+        log.info("Saliendo de postNave()");
+        return ResponseEntity.ok().body(navePosted);
     }
     
-    
-    @DeleteMapping("/{id}")
+    @DeleteMapping(version+Constantes.DELETE_NAVE_ENDPOINT)
     public ResponseEntity<Void> deleteNave(@PathVariable Integer id) {
-        try {
-            if (!navesService.deleteNaveById(id)) {
-                return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-            }
-            return new ResponseEntity<>(HttpStatus.NO_CONTENT);
-        } catch (Exception e) {
-            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
-        }
+        log.info("Entrando en deleteNave() con id: {}", id);
+        navesService.deleteNaveById(id);
+        log.info("Saliendo de deleteNave()");
+        return ResponseEntity.ok().body(null);
     }
 }

@@ -1,5 +1,6 @@
 package com.proyecto.naves.mapper;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 import org.springframework.stereotype.Component;
@@ -15,13 +16,13 @@ public class NavesMappers {
 	
 	public Naves mapperNavesPutRequestToNaves(NavesPutRequest navesPutRequest, Naves nave) {
 		nave.setNombre(navesPutRequest.getNombre());
-		nave.setFechaModif(LocalDateTime.now());
+		nave.setFechaModif(LocalDate.now());
 		return nave;
 	}
 	
 	public Naves mapperNavesPostRequestToNaves(NavesPostRequest navesPostRequest) {
 		Naves nave = new Naves();
-		nave.setFechaAlta(LocalDateTime.now());
+		nave.setFechaAlta(LocalDate.now());
 		nave.setNombre(navesPostRequest.getNombre());
 		return nave;
 	}

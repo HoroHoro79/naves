@@ -1,6 +1,6 @@
 package com.proyecto.naves.model;
 
-import java.time.LocalDateTime;
+import java.time.LocalDate;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -25,14 +25,14 @@ public class Naves {
 	    @Column(name = "nombre", nullable = false, length = 50)
 	    private String nombre;
 	    
-	    @Column(name = "fcalta")
-	    private LocalDateTime fechaAlta;
+	    @Column(name = "fcalta",columnDefinition = "TIMESTAMP")
+	    private LocalDate fechaAlta;
 
-	    @Column(name = "fcmodif")
-	    private LocalDateTime fechaModif;
+	    @Column(name = "fcmodif",columnDefinition = "TIMESTAMP")
+	    private LocalDate fechaModif;
 
-	    @Column(name = "fcbaja")
-	    private LocalDateTime fechaBaja;
+	    @Column(name = "fcbaja",columnDefinition = "TIMESTAMP")
+	    private LocalDate fechaBaja;
 
 	    
 	    
