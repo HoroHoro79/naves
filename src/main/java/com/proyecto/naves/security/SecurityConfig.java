@@ -33,11 +33,8 @@ public class SecurityConfig {
 	
 		http.httpBasic(withDefaults())
 				.authorizeHttpRequests()
-				.requestMatchers("/doc/swagger-ui/index.html**").permitAll()
-				.requestMatchers("/api/naves/v1/status/**").permitAll()
-				.requestMatchers("/api/security/v1/credentials/**").permitAll()
-				.requestMatchers("/api/naves/v1/**").authenticated()
-				.requestMatchers("/api/security/v1/**").authenticated();
+				.requestMatchers("/api/naves/v1/status/**", "/v3/**", "/swagger-ui/**", "/api/security/v1/credentials/**").permitAll()
+				.anyRequest().authenticated();
 		return http.build();
 	}
 	
