@@ -30,11 +30,6 @@ public class Naves {
 
 	    @Column(name = "fcmodif",columnDefinition = "TIMESTAMP")
 	    private LocalDate fechaModif;
-
-	    @Column(name = "fcbaja",columnDefinition = "TIMESTAMP")
-	    private LocalDate fechaBaja;
-
-	    
 	    
 	    
 }
